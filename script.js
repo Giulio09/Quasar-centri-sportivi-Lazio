@@ -1,6 +1,6 @@
 $(function(){
 
-	var mymap = L.map('mapid').setView([41.8919300, 12.5113300], 13);
+	var mymap = L.map('mapid').setView([41.8919300, 12.5113300], 8);
 	var popup = L.popup();
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -26,12 +26,14 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 				if(lat&&lon){
 
+                    // Ogni record può avere più attività, separate da una virgola
 					record["ATTIVITA"].split(",").forEach(function(attivita) {
 						attivitas[attivita] = (attivitas[attivita] || 0) + 1;
 					});
 
 					markers.push({
-						attivita: record["ATTIVITA"],
+                        // Le attività nei marker appaiono come array
+						attivita: record["ATTIVITA"].split(','),
 						marker: L.marker([lat,lon])
 							.bindTooltip(
 								"<p>" + record["DENOMINAZIONE IMPIANTO SPORTIVO"] + "</p>" +
@@ -55,7 +57,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				.attr("class","attivita")
 				.attr("name", "attivita")
 				.on("click", function(d) {
-					console.log(d, markers);
+                    // Filtro tutti i marker in base alla presenza o meno dell'attività selezionata
+                    var filtered_markers = markers.filter(function(m) { return m['attivita'].indexOf(d.key) > -1; });
+                    // Rimuovo tutti i marker
+                    markers.forEach(function(m) { m['marker'].remove(); });
+                    // Aggiungo alla mappa solo i marker filtrati
+                    filtered_markers.forEach(function(m) { m['marker'].addTo(mymap); });
+					console.log(d, filtered_markers);
 				});
 
 			divs.append("label")
